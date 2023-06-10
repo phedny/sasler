@@ -16,9 +16,8 @@ const (
 	serverNonceLen = 24
 )
 
-// ScramAuthenticator implements credential retrieval, authz derivation and
-// authorization checking for a server-side implementation of one of the
-// mechanisms from the SCRAM-* family.
+// ScramAuthenticator is passed to [ScramSha1Server] or [ScramSha256Server] to
+// implement credential retrieval, authz derivation and authorization checking.
 type ScramAuthenticator interface {
 	// GetCredentials returns the credentials for an authn, or an error if the
 	// credentials could not be retrieved. The salt and iCount are parameters for
@@ -48,7 +47,10 @@ type scramServerMech struct {
 }
 
 // ScramSha1Server returns a server-side SaslMech implementation for the
-// SCRAM-SHA-1 mechanism.
+// SCRAM-SHA-1 mechanism, as specified in [RFC 5802]. Returns an error when
+// generating a random server nonce failed.
+//
+// [RFC 5802]: https://tools.ietf.org/html/rfc5802
 func ScramSha1Server(auth ScramAuthenticator) (ServerMech, error) {
 	m := &scramServerMech{
 		scramMech: scramMech{
@@ -64,7 +66,10 @@ func ScramSha1Server(auth ScramAuthenticator) (ServerMech, error) {
 }
 
 // ScramSha256Server returns a server-side SaslMech implementation for the
-// SCRAM-SHA-256 mechanism.
+// SCRAM-SHA-256 mechanism, as specified in [RFC 7677]. Returns an error when
+// generating a random server nonce failed.
+//
+// [RFC 7677]: https://tools.ietf.org/html/rfc7677
 func ScramSha256Server(auth ScramAuthenticator) (ServerMech, error) {
 	m := &scramServerMech{
 		scramMech: scramMech{

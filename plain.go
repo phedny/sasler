@@ -6,7 +6,10 @@ import (
 	"github.com/xdg-go/stringprep"
 )
 
-// PlainClient returns a ClientMech implementation for the PLAIN mechanism.
+// PlainClient returns a ClientMech implementation for the PLAIN mechanism, as
+// specified in [RFC 4616].
+//
+// [RFC 4616]: https://tools.ietf.org/html/rfc4616.
 func PlainClient(authz, authn, passwd string) ClientMech {
 	ir := make([]byte, len(authz)+len(authn)+len(passwd)+2)
 	copy(ir, []byte(authz))
@@ -15,9 +18,8 @@ func PlainClient(authz, authn, passwd string) ClientMech {
 	return &singleMessageClient{name: "PLAIN", ir: ir}
 }
 
-// PlainAuthenticator implements password verification, authz derivation and
-// authorization checking for a server-side implementation of the PLAIN
-// mechanism.
+// PlainAuthenticator is supplied to [PlainServer] to implement password
+// verification, authz derivation and authorization checking.
 type PlainAuthenticator interface {
 	// VerifyPasswd verifies whether the supplied combination of authn and passwd
 	// is valid. Return false to fail authentication.
@@ -31,7 +33,10 @@ type PlainAuthenticator interface {
 	Authorize(authz, authn string) bool
 }
 
-// PlainServer returns a ServerMech implementation for the PLAIN mechanism.
+// PlainServer returns a ServerMech implementation for the PLAIN mechanism, as
+// specified in [RFC 4616].
+//
+// [RFC 4616]: https://tools.ietf.org/html/rfc4616.
 func PlainServer(auth PlainAuthenticator) ServerMech {
 	cb := func(ir []byte) (string, error) {
 		delim := bytes.IndexByte(ir, 0)

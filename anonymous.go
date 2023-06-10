@@ -3,7 +3,11 @@ package sasler
 import "github.com/xdg-go/stringprep"
 
 // AnonymousClient returns a ClientMech implementation for the ANONYMOUS
-// mechanism.
+// mechanism, as specified in [RFC 4505]. Return an
+// error for values of trace that are invalid, i.e. when it contains prohibited
+// characters, or fails BiDi rules. For details, see section 3 of the RFC.
+//
+// [RFC 4505]: https://tools.ietf.org/html/rfc4505
 func AnonymousClient(trace string) (ClientMech, error) {
 	preppedTrace, err := tracePrep.Prepare(trace)
 	if err != nil {
@@ -13,7 +17,8 @@ func AnonymousClient(trace string) (ClientMech, error) {
 	return &singleMessageClient{name: "ANONYMOUS", ir: ir}, nil
 }
 
-// AnonymousAuthenticator implements storing trace data.
+// AnonymousAuthenticator is supplied to [AnonymousServer] to implement storing
+// received trace values.
 type AnonymousAuthenticator interface {
 	// StoreTrace is called to store trace information provided by the client.
 	// Will not be called if the client didn't provide trace information.
@@ -21,7 +26,9 @@ type AnonymousAuthenticator interface {
 }
 
 // AnonymousServer returns a ServerMech implementation for the ANONYMOUS
-// mechanism.
+// mechanism, as specified in [RFC 4505].
+//
+// [RFC 4505]: https://tools.ietf.org/html/rfc4505
 func AnonymousServer(authz string, auth AnonymousAuthenticator) ServerMech {
 	cb := func(ir []byte) (string, error) {
 		preppedTrace, err := tracePrep.Prepare(string(ir))

@@ -26,7 +26,12 @@ type scramClientMech struct {
 }
 
 // ScramSha1Client returns a ClientMech implementation for the SCRAM-SHA-1
-// mechanism.
+// mechanism, as specified in [RFC 5802]. Returns an error if SASLprep on
+// authn, or passwd fails, as described in [RFC 5802, section 5.1]. Also
+// returns an error when generating a random client nonce failed.
+//
+// [RFC 5802]: https://tools.ietf.org/html/rfc5802
+// [RFC 5802, section 5.1]: https://tools.ietf.org/html/rfc5802#section-5.1
 func ScramSha1Client(authz, authn, passwd string) (ClientMech, error) {
 	m := &scramClientMech{
 		scramMech: scramMech{
@@ -47,7 +52,12 @@ func ScramSha1Client(authz, authn, passwd string) (ClientMech, error) {
 }
 
 // ScramSha256Client returns a ClientMech implementation for the SCRAM-SHA-256
-// mechanism.
+// mechanism, as specified in [RFC 7677]. Returns an error if SASLprep on
+// authn, or passwd fails, as described in [RFC 5802, section 5.1]. Also
+// returns an error when generating a random client nonce failed.
+//
+// [RFC 7677]: https://tools.ietf.org/html/rfc7677
+// [RFC 5802, section 5.1]: https://tools.ietf.org/html/rfc5802#section-5.1
 func ScramSha256Client(authz, authn, passwd string) (ClientMech, error) {
 	m := &scramClientMech{
 		scramMech: scramMech{

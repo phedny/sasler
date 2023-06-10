@@ -6,7 +6,9 @@ import (
 )
 
 // OAuthBearerClient returns a ClientMech implementation for the OAUTHBEARER
-// mechanism.
+// mechanism, as specified in [RFC 7628].
+//
+// [RFC 7628]: https://tools.ietf.org/html/rfc7628.
 func OAuthBearerClient(authz, token, host string, port int) ClientMech {
 	var b bytes.Buffer
 	b.WriteString("n,")
@@ -29,9 +31,8 @@ func OAuthBearerClient(authz, token, host string, port int) ClientMech {
 	return &singleMessageClient{name: "OAUTHBEARER", ir: b.Bytes()}
 }
 
-// OAuthBearerAuthenticator implements token verification, authz derivation and
-// authorization checking for a server-side implementation of the OAUTHBEARER
-// mechanism.
+// OAuthBearerAuthenticator is supplied to [OAuthBearerServer] to implement
+// token verification, authz derivation and authorization checking.
 type OAuthBearerAuthenticator interface {
 	// VerifyToken verifies whether the supplied token is valid. The host and/or
 	// port values default to "" and 0 respectively, if not provided by the
@@ -47,7 +48,9 @@ type OAuthBearerAuthenticator interface {
 }
 
 // OAuthBearerServer returns a ServerMech implementation for the OAUTHBEARER
-// mechanism.
+// mechanism, as specified in [RFC 7628].
+//
+// [RFC 7628]: https://tools.ietf.org/html/rfc7628.
 func OAuthBearerServer(auth OAuthBearerAuthenticator) ServerMech {
 	cb := func(ir []byte) (string, error) {
 		if len(ir) < 2 || ir[0] != 'n' || ir[1] != ',' {
@@ -109,7 +112,7 @@ func OAuthBearerServer(auth OAuthBearerAuthenticator) ServerMech {
 		}
 		ir = ir[6:]
 		if len(ir) < 7 || string(ir[:7]) != "Bearer " {
-			return "", ErrInvalidCurve
+			return "", ErrWrongCurve
 		}
 		ir = ir[7:]
 		delim := bytes.IndexByte(ir, 1)

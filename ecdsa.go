@@ -8,7 +8,9 @@ import (
 	"errors"
 )
 
-var ErrInvalidCurve = errors.New("sasler: invalid curve")
+// ErrWrongCurve is returned by a function is called with an ECDSA private or
+// public key that references a curve the function doesn't accept.
+var ErrWrongCurve = errors.New("sasler: wrong curve")
 
 // ecdsaClientMech is an implementation of the ECDSA-NIST256P-CHALLENGE
 // mechanisms.
@@ -19,10 +21,14 @@ type ecdsaClientMech struct {
 }
 
 // EcdsaNist256pChallengeClient returns a SaslMech implementation for the
-// ECDSA-NIST256P-CHALLENGE mechanism.
+// ECDSA-NIST256P-CHALLENGE mechanism, as specified at [ecdsatool]. Returns
+// ErrWrongCurve if the public key doesn't use the curve returned by
+// elliptic.P256().
+//
+// [ecdsatool]: https://github.com/kaniini/ecdsatool#mechanism-spec
 func EcdsaNist256pChallengeClient(authz, authn string, key *ecdsa.PrivateKey) (ClientMech, error) {
 	if key.Curve != elliptic.P256() {
-		return nil, ErrInvalidCurve
+		return nil, ErrWrongCurve
 	}
 	return &ecdsaClientMech{authz, authn, key}, nil
 }
@@ -60,9 +66,9 @@ func (m *ecdsaClientMech) Data(challenge []byte) ([]byte, error) {
 	return nil, ErrInvalidState
 }
 
-// EcdsaAuthenticator implements retrieving the public key for an authn, authz
-// derivation and authorization checking for a server-side implementation of
-// the ECDSA-NIST256P-CHALLENGE mechanism.
+// EcdsaAuthenticator is supplied to [EcdsaNist256pChallengeServer] to
+// implement retrieving the public key for an authn, authz derivation, and
+// authorization checking.
 type EcdsaAuthenticator interface {
 	// GetPublicKey returns the public key for an authn, or an error if the
 	// public key could not be retrieved.
@@ -87,7 +93,9 @@ type ecdsaServerMech struct {
 }
 
 // EcdsaNist256pChallengeServer returns a SaslMech implementation for the
-// ECDSA-NIST256P-CHALLENGE mechanism.
+// ECDSA-NIST256P-CHALLENGE mechanism, as specified in [ecdsatool].
+//
+// [ecdsatool]: https://github.com/kaniini/ecdsatool#mechanism-spec
 func EcdsaNist256pChallengeServer(auth EcdsaAuthenticator) ServerMech {
 	return &ecdsaServerMech{auth: auth}
 }
@@ -114,7 +122,7 @@ func (m *ecdsaServerMech) Data(data []byte) ([]byte, error) {
 			return nil, ErrAuthenticationFailed
 		}
 		if publicKey.Curve != elliptic.P256() {
-			return nil, ErrInvalidCurve
+			return nil, ErrWrongCurve
 		}
 		m.key = publicKey
 		m.challenge = make([]byte, 30)

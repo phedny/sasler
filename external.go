@@ -1,7 +1,9 @@
 package sasler
 
 // ExternalClient returns a ClientMech implementation for the EXTERNAL
-// mechanism.
+// mechanism, as specified in [RFC 4422, appendix A].
+//
+// [RFC 4422, appendix A]: https://tools.ietf.org/html/rfc4422#appendix-A
 func ExternalClient(authz string) ClientMech {
 	if authz == "" {
 		return &singleMessageClient{name: "EXTERNAL", ir: []byte{}}
@@ -10,8 +12,8 @@ func ExternalClient(authz string) ClientMech {
 	}
 }
 
-// ExternalAuthenticator implements authz derivation and authorization checking
-// for a server-side implementation of the EXTERNAL mechanism.
+// ExternalAuthenticator is supplied to [ExternalServer] to implement authz
+// derivation and authorization checking.
 type ExternalAuthenticator interface {
 	// DeriveAuthz derives an authz from external sources. It is only called when
 	// no authz has been requested by the client. Return the empty string if no
@@ -23,7 +25,9 @@ type ExternalAuthenticator interface {
 }
 
 // ExternalServer returns a ServerMech implementation for the EXTERNAL
-// mechanism.
+// mechanism, as specified in [RFC 4422, appendix A].
+//
+// [RFC 4422, appendix A]: https://tools.ietf.org/html/rfc4422#appendix-A
 func ExternalServer(auth ExternalAuthenticator) ServerMech {
 	cb := func(ir []byte) (string, error) {
 		authz := string(ir)
