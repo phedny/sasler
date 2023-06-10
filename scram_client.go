@@ -80,19 +80,12 @@ func ScramSha256Client(authz, authn, passwd string) (ClientMech, error) {
 // prepare runs stringprep with the SASLprep profile on the authzid, authcid,
 // and passwd fields. Returns an error is any of the preparations fail.
 func (m *scramClientMech) prepare() error {
-	if m.authz != "" {
-		authzid, err := stringprep.SASLprep.Prepare(m.authz)
-		if err != nil {
-			return err
-		}
-		m.authz = authzid
-	}
 	if m.authn != "" {
-		authcid, err := stringprep.SASLprep.Prepare(m.authn)
+		authn, err := stringprep.SASLprep.Prepare(m.authn)
 		if err != nil {
 			return err
 		}
-		m.authn = authcid
+		m.authn = authn
 	}
 	if m.passwd != "" {
 		passwd, err := stringprep.SASLprep.Prepare(m.passwd)

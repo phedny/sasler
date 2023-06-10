@@ -170,11 +170,7 @@ func (m *scramServerMech) parseIR(ir []byte) error {
 		if comma == -1 {
 			return ErrInvalidMessage
 		}
-		authz, err := stringprep.SASLprep.Prepare(string(ir[:comma]))
-		if err != nil {
-			return ErrInvalidMessage
-		}
-		m.authz = authz
+		m.authz = string(ir[:comma])
 		ir = ir[comma:]
 		if len(ir) < 2 {
 			return ErrInvalidMessage
