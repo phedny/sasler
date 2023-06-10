@@ -9,7 +9,7 @@ import (
 )
 
 func TestPlainClient(t *testing.T) {
-	auth := sasler.PlainClient("LetMeBe", "WhoIAm", "AndTrustMe")
+	auth := sasler.PlainClient("LetMeBe", "WhoIAm", []byte("AndTrustMe"))
 
 	gotName, gotClientFirst := auth.Mech()
 	expectedName := "PLAIN"
@@ -122,11 +122,11 @@ func TestPlainServer_Unauthorized(t *testing.T) {
 
 type FakePlainAuthenticator struct{}
 
-func (*FakePlainAuthenticator) VerifyPasswd(authn, passwd string) bool {
+func (*FakePlainAuthenticator) VerifyPasswd(authn string, passwd []byte) bool {
 	switch {
-	case authn == "user" && passwd == "password":
+	case authn == "user" && bytes.Equal(passwd, []byte("password")):
 		return true
-	case authn == "admin" && passwd == "VeryDifficultPassword":
+	case authn == "admin" && bytes.Equal(passwd, []byte("VeryDifficultPassword")):
 		return true
 	}
 	return false

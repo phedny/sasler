@@ -7,7 +7,7 @@ import (
 )
 
 func TestScramSha1Client(t *testing.T) {
-	auth, err := ScramSha1Client("", "user", "pencil")
+	auth, err := ScramSha1Client("", "user", []byte("pencil"))
 	if err != nil {
 		t.Fatalf(`ScramSha1Client("", "user", "pencil") returned error: %v`, err)
 	}
@@ -51,7 +51,7 @@ func TestScramSha1Client(t *testing.T) {
 }
 
 func TestScramSha1Client_RequestedAuthz(t *testing.T) {
-	auth, err := ScramSha1Client("RequestedAuthz", "user", "pencil")
+	auth, err := ScramSha1Client("RequestedAuthz", "user", []byte("pencil"))
 	if err != nil {
 		t.Fatalf(`ScramSha1Client("RequestedAuthz", "user", "pencil") returned error: %v`, err)
 	}
@@ -95,7 +95,7 @@ func TestScramSha1Client_RequestedAuthz(t *testing.T) {
 }
 
 func TestScramSha1Client_ModifiedClientNonce(t *testing.T) {
-	auth, err := ScramSha1Client("", "user", "pencil")
+	auth, err := ScramSha1Client("", "user", []byte("pencil"))
 	if err != nil {
 		t.Fatalf(`ScramSha1Client("", "user", "pencil") returned error: %v`, err)
 	}
@@ -130,7 +130,7 @@ func TestScramSha1Client_ModifiedClientNonce(t *testing.T) {
 }
 
 func TestScramSha1Client_InvalidServerSignature(t *testing.T) {
-	auth, err := ScramSha1Client("", "user", "pencil")
+	auth, err := ScramSha1Client("", "user", []byte("pencil"))
 	if err != nil {
 		t.Fatalf(`ScramSha1Client("", "user", "pencil") returned error: %v`, err)
 	}
@@ -174,7 +174,7 @@ func TestScramSha1Client_InvalidServerSignature(t *testing.T) {
 }
 
 func TestScramSha256Client(t *testing.T) {
-	auth, err := ScramSha256Client("", "user", "pencil")
+	auth, err := ScramSha256Client("", "user", []byte("pencil"))
 	if err != nil {
 		t.Fatalf(`ScramSha256Client("", "user", "pencil") returned error: %v`, err)
 	}

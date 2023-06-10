@@ -10,7 +10,7 @@ import (
 )
 
 func TestOAuthBearerClient(t *testing.T) {
-	auth := sasler.OAuthBearerClient("LetMeBe", "ThisIsTheTokenDude", "example.com", 143)
+	auth := sasler.OAuthBearerClient("LetMeBe", []byte("ThisIsTheTokenDude"), "example.com", 143)
 
 	gotName, gotClientFirst := auth.Mech()
 	expectedName := "OAUTHBEARER"
@@ -167,43 +167,43 @@ func TestOAuthBearerServer_Unauthorized(t *testing.T) {
 
 type FakeOAuthBearerAuthenticator struct{}
 
-func (*FakeOAuthBearerAuthenticator) VerifyToken(token, host string, port int) bool {
+func (*FakeOAuthBearerAuthenticator) VerifyToken(token []byte, host string, port int) bool {
 	switch {
-	case strings.Contains(token, "Invalid"):
+	case bytes.Contains(token, []byte("Invalid")):
 		return false
-	case strings.Contains(token, "NoHost,NoPort") && host == "" && port == 0:
+	case bytes.Contains(token, []byte("NoHost,NoPort")) && host == "" && port == 0:
 		return true
-	case strings.Contains(token, "YesHost,YesPort") && host == "example.com" && port == 143:
+	case bytes.Contains(token, []byte("YesHost,YesPort")) && host == "example.com" && port == 143:
 		return true
 	}
 	return false
 }
 
-func (*FakeOAuthBearerAuthenticator) DeriveAuthz(token string) string {
-	n := strings.Index(token, "Derive:")
+func (*FakeOAuthBearerAuthenticator) DeriveAuthz(token []byte) string {
+	n := bytes.Index(token, []byte("Derive:"))
 	if n == -1 {
 		return ""
 	}
 	token = token[n+7:]
-	n = strings.IndexByte(token, ',')
+	n = bytes.IndexByte(token, ',')
 	if n == -1 {
-		return token
+		return string(token)
 	}
-	return token[:n]
+	return string(token[:n])
 }
 
-func (*FakeOAuthBearerAuthenticator) Authorize(authz, token string) bool {
-	n := strings.Index(token, "Authz:")
+func (*FakeOAuthBearerAuthenticator) Authorize(authz string, token []byte) bool {
+	n := bytes.Index(token, []byte("Authz:"))
 	if n == -1 {
 		return false
 	}
 	token = token[n+6:]
-	n = strings.IndexByte(token, ',')
+	n = bytes.IndexByte(token, ',')
 	if n != -1 {
 		token = token[:n]
 	}
-	for _, ok := range strings.Split(token, "/") {
-		if authz == ok {
+	for _, ok := range strings.Split(string(token), "/") {
+		if authz == string(ok) {
 			return true
 		}
 	}

@@ -172,7 +172,7 @@ func (*exampleClient2) Abort() {}
 func (*exampleClient2) Success() {}
 
 func ScramClientConn() exampleClient2 {
-	mech, _ := sasler.ScramSha1Client("", "user", "pencil")
+	mech, _ := sasler.ScramSha1Client("", "user", []byte("pencil"))
 	data, _ := mech.Data(nil)
 	return exampleClient2{mech, data}
 }

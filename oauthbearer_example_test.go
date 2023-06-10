@@ -1,8 +1,8 @@
 package sasler_test
 
 import (
+	"bytes"
 	"fmt"
-	"strings"
 
 	"github.com/phedny/sasler"
 )
@@ -11,7 +11,7 @@ func ExampleOAuthBearerAuthenticator() {
 	auth := myOAuthBearerAuthenticator{
 		host:      "example.com",
 		port:      143,
-		signature: "SiGNeD_By_auTHoRiTy",
+		signature: []byte("SiGNeD_By_auTHoRiTy"),
 	}
 	mech := sasler.OAuthBearerServer(&auth)
 
@@ -36,23 +36,24 @@ func ExampleOAuthBearerAuthenticator() {
 type myOAuthBearerAuthenticator struct {
 	host      string
 	port      int
-	signature string
+	signature []byte
 }
 
 // VerifyToken verifies the host, port and signature of the provided token.
-func (a *myOAuthBearerAuthenticator) VerifyToken(token, host string, port int) bool {
-	return host == a.host && port == a.port && strings.Split(token, ",")[1] == a.signature
+func (a *myOAuthBearerAuthenticator) VerifyToken(token []byte, host string, port int) bool {
+	signature := bytes.Split(token, []byte(","))[1]
+	return host == a.host && port == a.port && bytes.Equal(signature, a.signature)
 }
 
 // DeriveAuthz derives an authz from the token.
-func (a *myOAuthBearerAuthenticator) DeriveAuthz(token string) string {
-	return strings.Split(token, ",")[0]
+func (a *myOAuthBearerAuthenticator) DeriveAuthz(token []byte) string {
+	return string(bytes.Split(token, []byte(","))[0])
 }
 
 // Authorize checks whether the authn in the token matches the authz. This
 // implementation also allows anyone authenticated as Admin to be authorized
 // for any identity.
-func (a *myOAuthBearerAuthenticator) Authorize(authz, token string) bool {
-	authn := strings.Split(token, ",")[0]
+func (a *myOAuthBearerAuthenticator) Authorize(authz string, token []byte) bool {
+	authn := string(bytes.Split(token, []byte(","))[0])
 	return authz == authn || authn == "Admin"
 }

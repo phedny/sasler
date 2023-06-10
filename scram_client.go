@@ -22,7 +22,7 @@ type scramClientMech struct {
 	scramMech
 	authz  string
 	authn  string
-	passwd string
+	passwd []byte
 }
 
 // ScramSha1Client returns a ClientMech implementation for the SCRAM-SHA-1
@@ -32,7 +32,7 @@ type scramClientMech struct {
 //
 // [RFC 5802]: https://tools.ietf.org/html/rfc5802
 // [RFC 5802, section 5.1]: https://tools.ietf.org/html/rfc5802#section-5.1
-func ScramSha1Client(authz, authn, passwd string) (ClientMech, error) {
+func ScramSha1Client(authz, authn string, passwd []byte) (ClientMech, error) {
 	m := &scramClientMech{
 		scramMech: scramMech{
 			newHash:  sha1.New,
@@ -58,7 +58,7 @@ func ScramSha1Client(authz, authn, passwd string) (ClientMech, error) {
 //
 // [RFC 7677]: https://tools.ietf.org/html/rfc7677
 // [RFC 5802, section 5.1]: https://tools.ietf.org/html/rfc5802#section-5.1
-func ScramSha256Client(authz, authn, passwd string) (ClientMech, error) {
+func ScramSha256Client(authz, authn string, passwd []byte) (ClientMech, error) {
 	m := &scramClientMech{
 		scramMech: scramMech{
 			newHash:  sha256.New,
@@ -77,8 +77,8 @@ func ScramSha256Client(authz, authn, passwd string) (ClientMech, error) {
 	return m, nil
 }
 
-// prepare runs stringprep with the SASLprep profile on the authzid, authcid,
-// and passwd fields. Returns an error is any of the preparations fail.
+// prepare runs stringprep with the SASLprep profile on the authn and passwd
+// fields. Returns an error is any of the preparations fail.
 func (m *scramClientMech) prepare() error {
 	if m.authn != "" {
 		authn, err := stringprep.SASLprep.Prepare(m.authn)
@@ -87,12 +87,12 @@ func (m *scramClientMech) prepare() error {
 		}
 		m.authn = authn
 	}
-	if m.passwd != "" {
-		passwd, err := stringprep.SASLprep.Prepare(m.passwd)
+	if len(m.passwd) > 0 {
+		passwd, err := stringprep.SASLprep.Prepare(string(m.passwd))
 		if err != nil {
 			return err
 		}
-		m.passwd = passwd
+		m.passwd = []byte(passwd)
 	}
 	return nil
 }

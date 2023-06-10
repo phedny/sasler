@@ -10,11 +10,11 @@ import (
 // specified in [RFC 4616].
 //
 // [RFC 4616]: https://tools.ietf.org/html/rfc4616.
-func PlainClient(authz, authn, passwd string) ClientMech {
+func PlainClient(authz, authn string, passwd []byte) ClientMech {
 	ir := make([]byte, len(authz)+len(authn)+len(passwd)+2)
 	copy(ir, []byte(authz))
 	copy(ir[len(authz)+1:], []byte(authn))
-	copy(ir[len(authz)+len(authn)+2:], []byte(passwd))
+	copy(ir[len(authz)+len(authn)+2:], passwd)
 	return &singleMessageClient{name: "PLAIN", ir: ir}
 }
 
@@ -23,7 +23,7 @@ func PlainClient(authz, authn, passwd string) ClientMech {
 type PlainAuthenticator interface {
 	// VerifyPasswd verifies whether the supplied combination of authn and passwd
 	// is valid. Return false to fail authentication.
-	VerifyPasswd(authn, passwd string) bool
+	VerifyPasswd(authn string, passwd []byte) bool
 	// DerivceAuthz derives an authz from an authn. It is only called when no
 	// authz has been requested by the client. Return the empty string if no
 	// authz can be derived from the supplied authn.
@@ -57,7 +57,7 @@ func PlainServer(auth PlainAuthenticator) ServerMech {
 		if err != nil {
 			return "", ErrInvalidMessage
 		}
-		if !auth.VerifyPasswd(authn, passwd) {
+		if !auth.VerifyPasswd(authn, []byte(passwd)) {
 			return "", ErrAuthenticationFailed
 		}
 		if authz == "" {

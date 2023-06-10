@@ -1,6 +1,7 @@
 package sasler_test
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/phedny/sasler"
@@ -9,7 +10,7 @@ import (
 func ExamplePlainAuthenticator() {
 	auth := myPlainAuthenticator{
 		user:   "user",
-		passwd: "pencil",
+		passwd: []byte("pencil"),
 	}
 	mech := sasler.PlainServer(&auth)
 
@@ -32,12 +33,12 @@ func ExamplePlainAuthenticator() {
 // single username/password combination.
 type myPlainAuthenticator struct {
 	user   string
-	passwd string
+	passwd []byte
 }
 
 // VerifyPasswd verifies the username and password.
-func (a *myPlainAuthenticator) VerifyPasswd(authn, passwd string) bool {
-	return authn == a.user && passwd == a.passwd
+func (a *myPlainAuthenticator) VerifyPasswd(authn string, passwd []byte) bool {
+	return authn == a.user && bytes.Equal(passwd, a.passwd)
 }
 
 // DeriveAuthz derives an authz from an authn.

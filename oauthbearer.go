@@ -9,7 +9,7 @@ import (
 // mechanism, as specified in [RFC 7628].
 //
 // [RFC 7628]: https://tools.ietf.org/html/rfc7628.
-func OAuthBearerClient(authz, token, host string, port int) ClientMech {
+func OAuthBearerClient(authz string, token []byte, host string, port int) ClientMech {
 	var b bytes.Buffer
 	b.WriteString("n,")
 	if authz != "" {
@@ -26,7 +26,7 @@ func OAuthBearerClient(authz, token, host string, port int) ClientMech {
 		b.WriteString(strconv.Itoa(port))
 	}
 	b.WriteString("\x01auth=Bearer ")
-	b.WriteString(token)
+	b.Write(token)
 	b.WriteString("\x01\x01")
 	return &singleMessageClient{name: "OAUTHBEARER", ir: b.Bytes()}
 }
@@ -37,14 +37,14 @@ type OAuthBearerAuthenticator interface {
 	// VerifyToken verifies whether the supplied token is valid. The host and/or
 	// port values default to "" and 0 respectively, if not provided by the
 	// client. Return false to fail authentication.
-	VerifyToken(token, host string, port int) bool
+	VerifyToken(token []byte, host string, port int) bool
 	// DeriveAuthz derives an authz from a token. It is only called when no authz
 	// has been requested by the client. Return the empty string if no authz can
 	// be derived from the supplied token.
-	DeriveAuthz(token string) string
+	DeriveAuthz(token []byte) string
 	// Authorize verifies whether the provided token is authorized to use the
 	// requested or derived authz. Return false to fail authorization.
-	Authorize(authz, token string) bool
+	Authorize(authz string, token []byte) bool
 }
 
 // OAuthBearerServer returns a ServerMech implementation for the OAUTHBEARER
@@ -119,7 +119,7 @@ func OAuthBearerServer(auth OAuthBearerAuthenticator) ServerMech {
 		if delim == -1 {
 			return "", ErrInvalidMessage
 		}
-		token := string(ir[:delim])
+		token := ir[:delim]
 		ir = ir[delim:]
 		if len(ir) != 2 || ir[0] != 1 || ir[1] != 1 {
 			return "", ErrInvalidMessage
